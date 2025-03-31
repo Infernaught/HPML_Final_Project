@@ -1,6 +1,7 @@
 from datasets import load_dataset
 from trl import GRPOConfig, GRPOTrainer
 from transformers import AutoModelForCausalLM
+from peft import LoraConfig, get_peft_model
 import torch
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -12,8 +13,33 @@ model = "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
 def reward_len(completions, **kwargs):
     return [-abs(20 - len(completion)) for completion in completions]
 
-training_args = GRPOConfig(output_dir="deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B", logging_steps=10)
-model = AutoModelForCausalLM.from_pretrained(model).to(device)
+# Define LoRA configuration
+lora_config = LoraConfig(
+    r=16,                     # Rank
+    lora_alpha=32,           # Alpha scaling
+    target_modules=["q_proj", "k_proj", "v_proj", "o_proj"],  # Which modules to apply LoRA to
+    lora_dropout=0.05,
+    bias="none",
+    task_type="CAUSAL_LM"
+)
+
+# Load the base model
+base_model = AutoModelForCausalLM.from_pretrained(model).to(device)
+
+# Apply LoRA to the model
+model = get_peft_model(base_model, lora_config)
+model.print_trainable_parameters()  # Print the percentage of trainable parameters
+
+training_args = GRPOConfig(
+    output_dir="deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B",
+    logging_steps=10,
+    save_strategy="steps",        # Save by steps instead of epochs
+    save_steps=500,              # Save checkpoint every 500 steps
+    save_total_limit=3,          # Keep only the last 3 checkpoints
+    load_best_model_at_end=True, # Load the best model when training ends
+    metric_for_best_model="reward", # Use reward as the metric to track
+)
+
 trainer = GRPOTrainer(
     model=model,
     reward_funcs=reward_len,
