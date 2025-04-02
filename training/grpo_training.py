@@ -8,7 +8,7 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"Using device: {device}")
 dataset = load_dataset("trl-lib/tldr", split="train")
 eval_dataset = load_dataset("trl-lib/tldr", split="test")
-model = "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
+model_name = "Qwen/Qwen2.5-7B-Instruct"
 
 # Define the reward function, which rewards completions that are close to 20 characters
 def reward_len(completions, **kwargs):
@@ -34,7 +34,7 @@ bnb_config = BitsAndBytesConfig(
 
 # Load the base model with quantization
 base_model = AutoModelForCausalLM.from_pretrained(
-    model,
+    model_name,
     quantization_config=bnb_config,
     device_map="auto",
     torch_dtype=torch.float16,
@@ -45,7 +45,7 @@ model = get_peft_model(base_model, lora_config)
 model.print_trainable_parameters()  # Print the percentage of trainable parameters
 
 training_args = GRPOConfig(
-    output_dir="deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B",
+    output_dir="outputs/Qwen2.5-7B-Instruct",
     logging_steps=10,
     save_strategy="steps",        # Save by steps instead of epochs
     eval_strategy="steps",
