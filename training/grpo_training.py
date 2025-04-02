@@ -34,6 +34,7 @@ training_args = GRPOConfig(
     output_dir="Qwen/Qwen2.5-1.5B-Instruct",
     logging_steps=10,
     save_strategy="steps",        # Save by steps instead of epochs
+    eval_strategy="steps",
     save_steps=500,              # Save checkpoint every 500 steps
     save_total_limit=3,          # Keep only the last 3 checkpoints
     load_best_model_at_end=True, # Load the best model when training ends
