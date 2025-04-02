@@ -1,6 +1,6 @@
 from datasets import load_dataset
 from trl import GRPOConfig, GRPOTrainer
-from transformers import AutoModelForCausalLM
+from transformers import AutoModelForCausalLM, BitsAndBytesConfig
 from peft import LoraConfig, get_peft_model
 import torch
 
@@ -24,8 +24,21 @@ lora_config = LoraConfig(
     task_type="CAUSAL_LM"
 )
 
-# Load the base model
-base_model = AutoModelForCausalLM.from_pretrained(model).to(device)
+# Add quantization config
+bnb_config = BitsAndBytesConfig(
+    load_in_4bit=True,
+    bnb_4bit_quant_type="nf4",
+    bnb_4bit_compute_dtype=torch.float16,
+    bnb_4bit_use_double_quant=True,
+)
+
+# Load the base model with quantization
+base_model = AutoModelForCausalLM.from_pretrained(
+    model,
+    quantization_config=bnb_config,
+    device_map="auto",
+    torch_dtype=torch.float16,
+).to(device)
 
 # Apply LoRA to the model
 model = get_peft_model(base_model, lora_config)
@@ -40,6 +53,11 @@ training_args = GRPOConfig(
     save_total_limit=3,          # Keep only the last 3 checkpoints
     load_best_model_at_end=True, # Load the best model when training ends
     metric_for_best_model="reward", # Use reward as the metric to track
+    # Add memory optimization settings
+    gradient_accumulation_steps=4,    # Accumulate gradients over 4 steps
+    per_device_train_batch_size=1,    # Reduce batch size
+    gradient_checkpointing=True,      # Enable gradient checkpointing
+    max_grad_norm=0.3,               # Clip gradients to prevent memory spikes
 )
 
 trainer = GRPOTrainer(
