@@ -8,7 +8,7 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"Using device: {device}")
 dataset = load_dataset("trl-lib/tldr", split="train")
 eval_dataset = load_dataset("trl-lib/tldr", split="test")
-model = "Qwen/Qwen2.5-1.5B-Instruct"
+model = "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
 
 # Define the reward function, which rewards completions that are close to 20 characters
 def reward_len(completions, **kwargs):
@@ -45,7 +45,7 @@ model = get_peft_model(base_model, lora_config)
 model.print_trainable_parameters()  # Print the percentage of trainable parameters
 
 training_args = GRPOConfig(
-    output_dir="Qwen/Qwen2.5-1.5B-Instruct",
+    output_dir="deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B",
     logging_steps=10,
     save_strategy="steps",        # Save by steps instead of epochs
     eval_strategy="steps",
