@@ -11,7 +11,7 @@ dataset = pd.read_json("../tasks/datasets/aime_train_dataset.jsonl", orient="rec
 eval_dataset = pd.read_json("../tasks/datasets/aime_eval_dataset.jsonl", orient="records", lines=True)
 dataset = Dataset.from_pandas(dataset)
 eval_dataset = Dataset.from_pandas(eval_dataset)
-model_name = "microsoft/Phi-3-mini-128k-instruct"
+model_name = "microsoft/Phi-3.5-mini-instruct"
 
 # Define the reward function, which rewards completions that are close to 20 characters
 # Using this as a test for now
