@@ -49,7 +49,7 @@ model = get_peft_model(base_model, lora_config)
 model.print_trainable_parameters()  # Print the percentage of trainable parameters
 
 training_args = GRPOConfig(
-    output_dir="outputs/Qwen2.5-1.5B-Instruct",
+    output_dir="outputs/Phi-3.5-mini-instruct",
     logging_steps=10,
     save_strategy="steps",        # Save by steps instead of epochs
     eval_strategy="steps",
