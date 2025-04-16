@@ -38,7 +38,7 @@ def format_row(row):
     }
 
 train_df = train_df.apply(format_row, axis=1)
-train_df.to_json("~/datasets/aime_train_dataset.jsonl", orient="records", lines=True)
+train_df.to_json("./datasets/aime_train_dataset.jsonl", orient="records", lines=True)
 
 eval_df = eval_df.apply(format_row, axis=1)
-eval_df.to_json("~/datasets/aime_eval_dataset.jsonl", orient="records", lines=True)
+eval_df.to_json("./datasets/aime_eval_dataset.jsonl", orient="records", lines=True)
