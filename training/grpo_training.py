@@ -57,11 +57,10 @@ training_args = GRPOConfig(
     metric_for_best_model="reward", # Use reward as the metric to track
     # Add memory optimization settings
     gradient_accumulation_steps=4,    # Accumulate gradients over 4 steps
-    per_device_train_batch_size=1,    # Reduce batch size
+    per_device_train_batch_size=16,    # Use a batch size of 16
     gradient_checkpointing=True,      # Enable gradient checkpointing
     max_grad_norm=0.3,               # Clip gradients to prevent memory spikes
     num_generations=16,
-    per_device_train_batch_size=16,
 )
 
 trainer = GRPOTrainer(
