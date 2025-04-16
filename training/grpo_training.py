@@ -42,7 +42,6 @@ base_model = AutoModelForCausalLM.from_pretrained(
     quantization_config=bnb_config,
     device_map="auto",
     torch_dtype=torch.float16,
-    trust_remote_code=True,
 ).to(device)
 
 # Apply LoRA to the model
