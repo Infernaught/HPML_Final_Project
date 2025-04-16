@@ -1,4 +1,4 @@
-from datasets import load_dataset
+import pandas as pd
 from trl import GRPOConfig, GRPOTrainer
 from transformers import AutoModelForCausalLM, BitsAndBytesConfig
 from peft import LoraConfig, get_peft_model
@@ -6,11 +6,11 @@ import torch
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"Using device: {device}")
-dataset = load_dataset("trl-lib/tldr", split="train")
-eval_dataset = load_dataset("trl-lib/tldr", split="test")
+dataset = pd.read_json("./datasets/aime_train_dataset.jsonl", orient="records", lines=True)
 model_name = "Qwen/Qwen2.5-1.5B-Instruct"
 
 # Define the reward function, which rewards completions that are close to 20 characters
+# Using this as a test for now
 def reward_len(completions, **kwargs):
     return [-abs(20 - len(completion)) for completion in completions]
 
@@ -65,6 +65,5 @@ trainer = GRPOTrainer(
     reward_funcs=reward_len,
     args=training_args,
     train_dataset=dataset,
-    eval_dataset=eval_dataset,
 )
 trainer.train()
