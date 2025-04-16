@@ -7,6 +7,7 @@ import torch
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"Using device: {device}")
 dataset = pd.read_json("../tasks/datasets/aime_train_dataset.jsonl", orient="records", lines=True)
+eval_dataset = pd.read_json("../tasks/datasets/aime_eval_dataset.jsonl", orient="records", lines=True)
 model_name = "microsoft/Phi-3-mini-128k-instruct"
 
 # Define the reward function, which rewards completions that are close to 20 characters
@@ -66,5 +67,6 @@ trainer = GRPOTrainer(
     reward_funcs=reward_len,
     args=training_args,
     train_dataset=dataset,
+    eval_dataset=eval_dataset,
 )
 trainer.train()
