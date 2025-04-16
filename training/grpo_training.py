@@ -60,6 +60,8 @@ training_args = GRPOConfig(
     per_device_train_batch_size=1,    # Reduce batch size
     gradient_checkpointing=True,      # Enable gradient checkpointing
     max_grad_norm=0.3,               # Clip gradients to prevent memory spikes
+    num_generations=16,
+    per_device_train_batch_size=16,
 )
 
 trainer = GRPOTrainer(
