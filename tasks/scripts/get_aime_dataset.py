@@ -7,7 +7,7 @@ dataset = datasets.load_dataset("di-zhang-fdu/AIME_1983_2024", split="train")
 df = pd.DataFrame(dataset)
 
 # Remove rows where "2024" is not the year
-train_df = df[df["Year"] == 2023]
+train_df = df[(df["Year"] == 2023) | (df["Year"] == 2022) | (df["Year"] == 2021)]
 eval_df = df[df["Year"] == 2024]
 
 tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL)
