@@ -5,6 +5,8 @@ from peft import LoraConfig, get_peft_model
 import torch
 from datasets import Dataset
 from constants import BASE_MODEL
+from reward_functions import reward_function_mapping
+
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"Using device: {device}")
 dataset = pd.read_json("../tasks/datasets/aime_train_dataset.jsonl", orient="records", lines=True)
@@ -12,10 +14,7 @@ eval_dataset = pd.read_json("../tasks/datasets/aime_eval_dataset.jsonl", orient=
 dataset = Dataset.from_pandas(dataset)
 eval_dataset = Dataset.from_pandas(eval_dataset)
 
-# Define the reward function, which rewards completions that are close to 20 characters
-# Using this as a test for now
-def reward_len(completions, **kwargs):
-    return [-abs(20 - len(completion)) for completion in completions]
+reward_functions = reward_function_mapping["aime"]
 
 # Define LoRA configuration
 lora_config = LoraConfig(
@@ -67,7 +66,7 @@ training_args = GRPOConfig(
 
 trainer = GRPOTrainer(
     model=model,
-    reward_funcs=reward_len,
+    reward_funcs=reward_functions,
     args=training_args,
     train_dataset=dataset,
     eval_dataset=eval_dataset,
