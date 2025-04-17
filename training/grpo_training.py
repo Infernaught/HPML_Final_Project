@@ -4,14 +4,13 @@ from transformers import AutoModelForCausalLM, BitsAndBytesConfig
 from peft import LoraConfig, get_peft_model
 import torch
 from datasets import Dataset
-
+from constants import BASE_MODEL
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"Using device: {device}")
 dataset = pd.read_json("../tasks/datasets/aime_train_dataset.jsonl", orient="records", lines=True)
 eval_dataset = pd.read_json("../tasks/datasets/aime_eval_dataset.jsonl", orient="records", lines=True)
 dataset = Dataset.from_pandas(dataset)
 eval_dataset = Dataset.from_pandas(eval_dataset)
-model_name = "microsoft/Phi-3.5-mini-instruct"
 
 # Define the reward function, which rewards completions that are close to 20 characters
 # Using this as a test for now
@@ -38,7 +37,7 @@ bnb_config = BitsAndBytesConfig(
 
 # Load the base model with quantization
 base_model = AutoModelForCausalLM.from_pretrained(
-    model_name,
+    BASE_MODEL,
     quantization_config=bnb_config,
     device_map="auto",
     torch_dtype=torch.float16,
@@ -49,7 +48,7 @@ model = get_peft_model(base_model, lora_config)
 model.print_trainable_parameters()  # Print the percentage of trainable parameters
 
 training_args = GRPOConfig(
-    output_dir="outputs/Phi-3.5-mini-instruct",
+    output_dir=f"outputs/{BASE_MODEL}",
     logging_steps=10,
     save_strategy="steps",        # Save by steps instead of epochs
     eval_strategy="steps",

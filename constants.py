@@ -1,0 +1,1 @@
+BASE_MODEL = "microsoft/Phi-3.5-mini-instruct"
