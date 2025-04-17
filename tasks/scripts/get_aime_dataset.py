@@ -1,15 +1,16 @@
 import datasets
 import pandas as pd
 from transformers import AutoTokenizer
+from constants import BASE_MODEL
 
 dataset = datasets.load_dataset("di-zhang-fdu/AIME_1983_2024", split="train")
 df = pd.DataFrame(dataset)
 
 # Remove rows where "2024" is not the year
-train_df = df[df["Year"] != 2024]
+train_df = df[df["Year"] == 2023]
 eval_df = df[df["Year"] == 2024]
 
-tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen2.5-1.5B-Instruct")
+tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL)
 
 def format_row(row):
     question = row["Question"]
@@ -38,7 +39,7 @@ def format_row(row):
     }
 
 train_df = train_df.apply(format_row, axis=1)
-train_df.to_json("./datasets/aime_train_dataset.jsonl", orient="records", lines=True)
+train_df.to_json(f"./tasks/aime/aime_train_dataset.jsonl", orient="records", lines=True)
 
 eval_df = eval_df.apply(format_row, axis=1)
-eval_df.to_json("./datasets/aime_eval_dataset.jsonl", orient="records", lines=True)
+eval_df.to_json(f"./tasks/aime/aime_eval_dataset.jsonl", orient="records", lines=True)
