@@ -75,13 +75,13 @@ gpu_memory_report("After LoRA -")
 
 training_args = GRPOConfig(
     output_dir=f"outputs/{BASE_MODEL}",
-    logging_steps=1,
+    logging_steps=5,
     save_strategy="steps",        # Save by steps instead of epochs
     eval_strategy="steps",
     save_steps=5,              # Save checkpoint every 50 steps
     save_total_limit=3,          # Keep only the last 3 checkpoints
     load_best_model_at_end=True, # Load the best model when training ends
-    metric_for_best_model="rewards/equation_reward_func", # Use reward as the metric to track
+    metric_for_best_model="loss", # Use reward as the metric to track
     # Add memory optimization settings
     gradient_accumulation_steps=4,    # Accumulate gradients over 4 steps
     per_device_train_batch_size=16,    # Use a batch size of 16
