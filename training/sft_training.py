@@ -59,6 +59,8 @@ trainer = SFTTrainer(
     model=model,
     train_dataset=dataset,
     args=training_args,
+    dataset_text_field="prompt",
+    dataset_answer_field="answer",
 )
 with profile(
     activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],
