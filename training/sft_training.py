@@ -8,6 +8,7 @@ from trl import SFTConfig, SFTTrainer
 from transformers import AutoModelForCausalLM, BitsAndBytesConfig
 from peft import LoraConfig, get_peft_model
 import torch
+from torch.profiler import profile, record_function, ProfilerActivity
 from datasets import Dataset
 from training.constants import BASE_MODEL, AIME_TRAIN_DATASET_PATH_DISTILLED
 
@@ -59,4 +60,16 @@ trainer = SFTTrainer(
     train_dataset=dataset,
     args=training_args,
 )
-trainer.train()
+with profile(
+    activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],
+    profile_memory=True,
+    record_shapes=True,
+    with_stack=True,
+    with_flops=True,
+    schedule=torch.profiler.schedule(
+        wait=1, warmup=1, active=3, repeat=1  # optional tuning
+    ),
+    on_trace_ready=torch.profiler.tensorboard_trace_handler("./sft_logs/profiler")  # <- Saves trace files
+) as prof:
+    with record_function("sft_training"):
+        trainer.train()
