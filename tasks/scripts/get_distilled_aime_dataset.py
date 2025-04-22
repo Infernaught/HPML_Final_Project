@@ -51,7 +51,7 @@ def get_distilled_aime_dataset(df: pd.DataFrame, output_path: str):
         print("--------------------------------")
         if get_answer_from_output(response) == answer:
             print("Answer is correct")
-            new_dataset.append({"prompt": question, "answer": response})
+            new_dataset.append({"prompt": question, "completion": response})
         else:
             print("Answer is incorrect")
         print("--------------------------------")
