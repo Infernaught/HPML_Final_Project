@@ -54,8 +54,6 @@ training_args = SFTConfig(
     save_strategy="steps",
     save_steps=5,
     save_total_limit=3,
-    dataset_text_field="prompt",
-    dataset_answer_field="answer",
 )
 trainer = SFTTrainer(
     model=model,
