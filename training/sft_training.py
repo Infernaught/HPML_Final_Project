@@ -50,11 +50,13 @@ model.print_trainable_parameters()  # Print the percentage of trainable paramete
 
 training_args = SFTConfig(
     output_dir=f"sft_outputs/{BASE_MODEL}",
-    logging_steps=25,
+    logging_steps=50,
     save_strategy="steps",
-    save_steps=25,
+    save_steps=50,
     save_total_limit=3,
-    per_device_train_batch_size=4,
+    per_device_train_batch_size=1,  
+    gradient_accumulation_steps=4,  
+    optim="paged_adamw_32bit",
 )
 trainer = SFTTrainer(
     model=model,
