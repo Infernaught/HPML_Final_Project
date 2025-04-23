@@ -23,9 +23,15 @@ def gpu_memory_report(print_stmt = ""):
     print(f"{print_stmt} GPU Memory Max Allocated: {max_allocated_Gbytes:.5f} GBs")
 
 # Want to be able to call this inside the training loop. Can use Huggingface Callback
-class GPUMemoryCallback(TrainerCallback):
+# class GPUMemoryCallback(TrainerCallback):
+#     def on_step_end(self, args, state, control, **kwargs):
+#         gpu_memory_report(f"Step {state.global_step} - ")
+
+class ProfilerCallback(TrainerCallback):
+    def __init__(self, profiler):
+        self.profiler = profiler
     def on_step_end(self, args, state, control, **kwargs):
-        gpu_memory_report(f"Step {state.global_step} - ")
+        self.profiler.step()
 
 # torch.cuda.memory._record_memory_history() # will record memory allocation over time (then save to pickle at end)
 
@@ -97,17 +103,17 @@ trainer = GRPOTrainer(
     args=training_args,
     train_dataset=dataset,
     eval_dataset=eval_dataset,
-    # callbacks=[GPUMemoryCallback] # prints out memory allocation for each step
+    callbacks=[ProfilerCallback(profile)] # prints out memory allocation for each step
 )
 with profile(
+    schedule=torch.profiler.schedule(
+        wait=1,
+        warmup=1,
+        active=1,
+        repeat=1,
+    ),
     activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],
     profile_memory=True,
-    record_shapes=True,
-    with_stack=True,
-    with_flops=True,
-    schedule=torch.profiler.schedule(
-        wait=1, warmup=1, active=3, repeat=1  # optional tuning
-    ),
     on_trace_ready=torch.profiler.tensorboard_trace_handler("logs/profiler")  # <- Saves trace files
 ) as prof:
     with record_function("grpo_training"):
