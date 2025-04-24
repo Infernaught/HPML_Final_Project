@@ -4,14 +4,30 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 import pandas as pd
+import argparse
 from trl import GRPOConfig, GRPOTrainer
 from transformers import AutoModelForCausalLM, BitsAndBytesConfig, TrainerCallback
 from torch.profiler import profile, record_function, ProfilerActivity
 from peft import LoraConfig, get_peft_model
 import torch
 from datasets import Dataset
-from training.constants import BASE_MODEL
+from training.constants import AVAILABLE_MODELS
 from training.reward_functions import reward_function_mapping
+
+
+# argparse for selecting base model and quantization
+parser = argparse.ArgumentParser()
+parser.add_argument("--model", default="phi", choices=AVAILABLE_MODELS.keys())
+
+parser.add_argument("--quantize", action="store_true", help="Enable 4-bit quantization")
+parser.add_argument("--quant_type", default="nf4", choices=["nf4", "fp4"], help="4-bit quantization type")
+parser.add_argument("--double_quant", action="store_true", help="Use double quantization (nested)")
+parser.add_argument("--compute_dtype", default="float16", choices=["float16", "bfloat16"], help="Compute dtype")
+parser.add_argument("--use_8bit", action="store_true", help="Use 8-bit quantization instead of 4-bit")
+
+args = parser.parse_args()
+BASE_MODEL = AVAILABLE_MODELS[args.model]
+
 
 
 # create a function to print out memory allocations
@@ -54,15 +70,28 @@ lora_config = LoraConfig(
     task_type="CAUSAL_LM"
 )
 
-# Add quantization config
-bnb_config = BitsAndBytesConfig(
-    load_in_4bit=True,
-    bnb_4bit_quant_type="nf4",
-    bnb_4bit_compute_dtype=torch.float16,
-    bnb_4bit_use_double_quant=True,
-)
+# Add quantization config with argparse
+if args.quantize:
+    from transformers import BitsAndBytesConfig
+
+    compute_dtype = getattr(torch, args.compute_dtype)
+
+    bnb_config = BitsAndBytesConfig(
+        load_in_4bit=not args.use_8bit,
+        load_in_8bit=args.use_8bit,
+        bnb_4bit_quant_type=args.quant_type,
+        bnb_4bit_compute_dtype=compute_dtype,
+        bnb_4bit_use_double_quant=args.double_quant,
+    )
+
+    print("Quantization Enabled:", bnb_config)
+else:
+    bnb_config = None
+    print("Not using quantization")
 
 # torch.cuda.reset_peak_memory_stats() # reset max GPU Memory allocation (profile = not needed)
+
+
 
 # Load the base model with quantization
 base_model = AutoModelForCausalLM.from_pretrained(
