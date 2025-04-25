@@ -141,15 +141,17 @@ training_args = GRPOConfig(
 log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 
 profiler = profile(
-    schedule=torch.profiler.schedule(
-        wait=1,
-        warmup=1,
+    schedule=torch.profiler.schedule( # this schedule will capture 3 steps throughout training process
+        wait=19,
+        warmup=2,
         active=1,
-        repeat=1,
+        repeat=3,
     ),
     activities=[ProfilerActivity.CPU,ProfilerActivity.CUDA],
-    profile_memory=True,
-    record_shapes=True,
+    profile_memory=True, # only capture the memory as the rest are too expensive
+    record_shapes=False,
+    with_flops=False,
+    with_stack=False,
     on_trace_ready=torch.profiler.tensorboard_trace_handler(log_dir)
 )
 
