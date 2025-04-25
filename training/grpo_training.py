@@ -1,5 +1,6 @@
 import sys
 import os
+import datetime
 # Add the root directory to sys.path so Python can find 'tasks'
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
@@ -46,8 +47,19 @@ def gpu_memory_report(print_stmt = ""):
 class ProfilerCallback(TrainerCallback):
     def __init__(self, profiler):
         self.profiler = profiler
+        
+    def on_train_begin(self, args, state, control, **kwargs):
+        # Optionally start the profiler here
+        if hasattr(self.profiler, "start"):
+            self.profiler.start()
+    
     def on_step_end(self, args, state, control, **kwargs):
         self.profiler.step()
+        
+    def on_train_end(self, args, state, control, **kwargs):
+        # Make sure to stop the profiler
+        if hasattr(self.profiler, "stop"):
+            self.profiler.stop()
 
 # torch.cuda.memory._record_memory_history() # will record memory allocation over time (then save to pickle at end)
 
@@ -126,25 +138,30 @@ training_args = GRPOConfig(
     num_generations=16,
 )
 
-trainer = GRPOTrainer(
-    model=model,
-    reward_funcs=reward_functions,
-    args=training_args,
-    train_dataset=dataset,
-    eval_dataset=eval_dataset,
-    callbacks=[ProfilerCallback(profile)] # prints out memory allocation for each step
-)
-with profile(
+log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+
+profiler = profile(
     schedule=torch.profiler.schedule(
         wait=1,
         warmup=1,
         active=1,
         repeat=1,
     ),
-    activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],
+    activities=[ProfilerActivity.CPU,ProfilerActivity.CUDA],
     profile_memory=True,
-    on_trace_ready=torch.profiler.tensorboard_trace_handler("logs/profiler")  # <- Saves trace files
-) as prof:
-    with record_function("grpo_training"):
-        trainer.train()
+    record_shapes=True,
+    on_trace_ready=torch.profiler.tensorboard_trace_handler(log_dir)
+)
+
+
+trainer = GRPOTrainer(
+    model=model,
+    reward_funcs=reward_functions,
+    args=training_args,
+    train_dataset=dataset,
+    eval_dataset=eval_dataset,
+    callbacks=[ProfilerCallback(profiler)] # prints out memory allocation for each step
+)
+
+trainer.train()
 # torch.cuda.memory._dump_snapshot("outputs/my_snapshot.pickle") # with profileing not needed
