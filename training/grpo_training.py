@@ -131,14 +131,14 @@ training_args = GRPOConfig(
     metric_for_best_model="loss", # Use reward as the metric to track
     # Add memory optimization settings
     gradient_accumulation_steps=4,    # Accumulate gradients over 4 steps
-    per_device_train_batch_size=16,    # Use a batch size of 16
-    per_device_eval_batch_size=16,     # Use a batch size of 16 for evaluation
+    per_device_train_batch_size=4,    # Use a batch size of 16
+    per_device_eval_batch_size=4,     # Use a batch size of 16 for evaluation
     gradient_checkpointing=True,      # Enable gradient checkpointing
     max_grad_norm=0.3,               # Clip gradients to prevent memory spikes
-    num_generations=16,
+    num_generations=4,
 )
 
-log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+log_dir = "logs/profiler/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 
 profiler = profile(
     schedule=torch.profiler.schedule( # this schedule will capture 3 steps throughout training process
