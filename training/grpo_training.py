@@ -14,7 +14,20 @@ import torch
 from datasets import Dataset
 from training.constants import AVAILABLE_MODELS
 from training.reward_functions import reward_function_mapping
+import wandb
 
+# Initialize wandb
+wandb.init(
+    project="sft-to-grpo-training",  # Name of your project
+    name=f"sft-to-grpo-{BASE_MODEL}",  # Name of this specific run
+    config={
+        "model": BASE_MODEL,
+        "lora_r": 16,
+        "lora_alpha": 32,
+        "batch_size": 16,
+        "gradient_accumulation_steps": 4,
+    }
+)
 
 # argparse for selecting base model and quantization
 parser = argparse.ArgumentParser()
@@ -121,7 +134,7 @@ model.print_trainable_parameters()  # Print the percentage of trainable paramete
 gpu_memory_report("After LoRA -")
 
 training_args = GRPOConfig(
-    output_dir=f"outputs/{BASE_MODEL}_2",
+    output_dir=f"outputs/{BASE_MODEL}",
     logging_steps=5,
     save_strategy="steps",        # Save by steps instead of epochs
     eval_strategy="steps",
@@ -135,7 +148,10 @@ training_args = GRPOConfig(
     per_device_eval_batch_size=4,     # Use a batch size of 16 for evaluation
     gradient_checkpointing=True,      # Enable gradient checkpointing
     max_grad_norm=0.3,               # Clip gradients to prevent memory spikes
-    num_generations=4,
+    num_generations=16,
+    # Add wandb reporting
+    report_to="wandb",
+    run_name=wandb.run.name,
 )
 
 log_dir = "logs/profiler/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -167,3 +183,6 @@ trainer = GRPOTrainer(
 
 trainer.train()
 # torch.cuda.memory._dump_snapshot("outputs/my_snapshot.pickle") # with profileing not needed
+
+# Close wandb at the end
+wandb.finish()

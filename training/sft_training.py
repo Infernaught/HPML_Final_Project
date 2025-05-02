@@ -11,6 +11,20 @@ import torch
 from torch.profiler import profile, record_function, ProfilerActivity
 from datasets import Dataset
 from training.constants import BASE_MODEL, AIME_TRAIN_DATASET_PATH_DISTILLED
+import wandb
+
+# Initialize wandb
+wandb.init(
+    project="sft-training",
+    name=f"sft-{BASE_MODEL}",
+    config={
+        "model": BASE_MODEL,
+        "lora_r": 16,
+        "lora_alpha": 32,
+        "batch_size": 1,
+        "gradient_accumulation_steps": 4,
+    }
+)
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"Using device: {device}")
@@ -57,6 +71,9 @@ training_args = SFTConfig(
     per_device_train_batch_size=1,  
     gradient_accumulation_steps=4,  
     optim="paged_adamw_32bit",
+    # Add wandb reporting
+    report_to="wandb",
+    run_name=wandb.run.name,
 )
 trainer = SFTTrainer(
     model=model,
@@ -76,3 +93,6 @@ with profile(
 ) as prof:
     with record_function("sft_training"):
         trainer.train()
+
+# Add this at the end of your script to properly close wandb
+wandb.finish()
