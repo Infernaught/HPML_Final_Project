@@ -16,19 +16,6 @@ from training.constants import AVAILABLE_MODELS
 from training.reward_functions import reward_function_mapping
 import wandb
 
-# Initialize wandb
-wandb.init(
-    project="sft-to-grpo-training",  # Name of your project
-    name=f"sft-to-grpo-{BASE_MODEL}",  # Name of this specific run
-    config={
-        "model": BASE_MODEL,
-        "lora_r": 16,
-        "lora_alpha": 32,
-        "batch_size": 16,
-        "gradient_accumulation_steps": 4,
-    }
-)
-
 # argparse for selecting base model and quantization
 parser = argparse.ArgumentParser()
 parser.add_argument("--model", default="phi", choices=AVAILABLE_MODELS.keys())
@@ -42,7 +29,18 @@ parser.add_argument("--use_8bit", action="store_true", help="Use 8-bit quantizat
 args = parser.parse_args()
 BASE_MODEL = AVAILABLE_MODELS[args.model]
 
-
+# Initialize wandb
+wandb.init(
+    project="sft-to-grpo-training",  # Name of your project
+    name=f"sft-to-grpo-{BASE_MODEL}",  # Name of this specific run
+    config={
+        "model": BASE_MODEL,
+        "lora_r": 16,
+        "lora_alpha": 32,
+        "batch_size": 16,
+        "gradient_accumulation_steps": 4,
+    }
+)
 
 # create a function to print out memory allocations
 def gpu_memory_report(print_stmt = ""):
