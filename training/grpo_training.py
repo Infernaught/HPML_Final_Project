@@ -39,6 +39,11 @@ wandb.init(
         "lora_alpha": 32,
         "batch_size": 16,
         "gradient_accumulation_steps": 4,
+        "quantize": args.quantize,
+        "quant_type": args.quant_type,
+        "double_quant": args.double_quant,
+        "compute_dtype": args.compute_dtype,
+        "use_8bit": args.use_8bit,
     }
 )
 
