@@ -47,6 +47,24 @@ wandb.init(
     }
 )
 
+log_dir = "logs/profiler/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+
+def create_profiler():
+    profiler = profile(
+    schedule=torch.profiler.schedule( # this schedule will capture 3 steps throughout training process
+        wait=5,
+        warmup=2,
+        active=1,
+    ),
+    activities=[ProfilerActivity.CPU,ProfilerActivity.CUDA],
+        profile_memory=True, # only capture the memory as the rest are too expensive
+        record_shapes=False,
+        with_flops=False,
+        with_stack=False,
+        on_trace_ready=torch.profiler.tensorboard_trace_handler(log_dir)
+    )
+    return profiler
+
 # create a function to print out memory allocations
 def gpu_memory_report(print_stmt = ""):
     # get allocations (current and max seen) (bytes) and convert to Gigabytes
@@ -71,11 +89,15 @@ class ProfilerCallback(TrainerCallback):
     
     def on_step_end(self, args, state, control, **kwargs):
         self.profiler.step()
+        step_num = self.profiler.step.num
+        self.profiler = create_profiler()
+        self.profiler.step.num = step_num
         
     def on_train_end(self, args, state, control, **kwargs):
         # Make sure to stop the profiler
         if hasattr(self.profiler, "stop"):
             self.profiler.stop()
+            
 
 # torch.cuda.memory._record_memory_history() # will record memory allocation over time (then save to pickle at end)
 
@@ -128,7 +150,7 @@ base_model = AutoModelForCausalLM.from_pretrained(
     device_map="auto",
     torch_dtype=torch.float16,
     attn_implementation="eager", # - use flash_attention_2 for A100/H100
-).to(device)
+)
 gpu_memory_report("After Loading Model -")
 # Apply LoRA to the model
 model = get_peft_model(base_model, lora_config)
@@ -151,28 +173,13 @@ training_args = GRPOConfig(
     per_device_eval_batch_size=4,     # Use a batch size of 16 for evaluation
     gradient_checkpointing=True,      # Enable gradient checkpointing
     max_grad_norm=0.3,               # Clip gradients to prevent memory spikes
-    num_generations=16,
+    num_generations=4,
     # Add wandb reporting
     report_to="wandb",
     run_name=wandb.run.name,
 )
 
-log_dir = "logs/profiler/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-
-profiler = profile(
-    schedule=torch.profiler.schedule( # this schedule will capture 3 steps throughout training process
-        wait=19,
-        warmup=2,
-        active=1,
-        repeat=3,
-    ),
-    activities=[ProfilerActivity.CPU,ProfilerActivity.CUDA],
-    profile_memory=True, # only capture the memory as the rest are too expensive
-    record_shapes=False,
-    with_flops=False,
-    with_stack=False,
-    on_trace_ready=torch.profiler.tensorboard_trace_handler(log_dir)
-)
+profiler = create_profiler()
 
 
 trainer = GRPOTrainer(
