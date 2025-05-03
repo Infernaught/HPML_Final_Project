@@ -151,7 +151,7 @@ training_args = GRPOConfig(
     per_device_eval_batch_size=4,     # Use a batch size of 16 for evaluation
     gradient_checkpointing=True,      # Enable gradient checkpointing
     max_grad_norm=0.3,               # Clip gradients to prevent memory spikes
-    num_generations=16,
+    num_generations=4,
     # Add wandb reporting
     report_to="wandb",
     run_name=wandb.run.name,
