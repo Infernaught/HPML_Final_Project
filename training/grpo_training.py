@@ -30,22 +30,22 @@ args = parser.parse_args()
 BASE_MODEL = AVAILABLE_MODELS[args.model]
 
 # Initialize wandb
-wandb.init(
-    project="sft-to-grpo-training",  # Name of your project
-    name=f"sft-to-grpo-{BASE_MODEL}",  # Name of this specific run
-    config={
-        "model": BASE_MODEL,
-        "lora_r": 16,
-        "lora_alpha": 32,
-        "batch_size": 16,
-        "gradient_accumulation_steps": 4,
-        "quantize": args.quantize,
-        "quant_type": args.quant_type,
-        "double_quant": args.double_quant,
-        "compute_dtype": args.compute_dtype,
-        "use_8bit": args.use_8bit,
-    }
-)
+# wandb.init(
+#     project="sft-to-grpo-training",  # Name of your project
+#     name=f"sft-to-grpo-{BASE_MODEL}",  # Name of this specific run
+#     config={
+#         "model": BASE_MODEL,
+#         "lora_r": 16,
+#         "lora_alpha": 32,
+#         "batch_size": 16,
+#         "gradient_accumulation_steps": 4,
+#         "quantize": args.quantize,
+#         "quant_type": args.quant_type,
+#         "double_quant": args.double_quant,
+#         "compute_dtype": args.compute_dtype,
+#         "use_8bit": args.use_8bit,
+#     }
+# )
 
 log_dir = "logs/profiler/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 
@@ -168,7 +168,7 @@ training_args = GRPOConfig(
     gradient_accumulation_steps=4,    # Accumulate gradients over 4 steps
     per_device_train_batch_size=4,    # Use a batch size of 16
     per_device_eval_batch_size=4,     # Use a batch size of 16 for evaluation
-    gradient_checkpointing=True,      # Enable gradient checkpointing
+    gradient_checkpointing=False,      # Enable gradient checkpointing
     max_grad_norm=0.3,               # Clip gradients to prevent memory spikes
     num_generations=4,
     # Add wandb reporting
@@ -192,4 +192,4 @@ trainer.train()
 # torch.cuda.memory._dump_snapshot("outputs/my_snapshot.pickle") # with profileing not needed
 
 # Close wandb at the end
-wandb.finish()
+# wandb.finish()
