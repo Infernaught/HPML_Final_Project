@@ -5,7 +5,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from transformers import AutoModelForCausalLM
 from peft import PeftModel
-from training.constants import BASE_MODEL
+from training.constants import AVAILABLE_MODELS
 from huggingface_hub import HfApi, login
 import wandb
 
@@ -40,10 +40,18 @@ def parse_args():
         default="model-merging",
         help="Weights & Biases project name"
     )
+
+    parser.add_argument(
+        "--base_model",
+        type=str,
+        choices=AVAILABLE_MODELS.keys(),
+        help="Base model name"
+    )
     return parser.parse_args()
 
 def main():
     args = parse_args()
+    BASE_MODEL = AVAILABLE_MODELS[args.base_model]
     
     # Initialize wandb
     wandb.init(
