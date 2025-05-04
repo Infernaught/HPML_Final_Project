@@ -105,7 +105,7 @@ def load_model(args):
         gpu_memory_utilization=args.gpu_memory_utilization,
         quantization=quantization,
         dtype=args.dtype,
-        cpu_offload_gb=args.cpu_offloading,
+        cpu_offload_gb=args.cpu_offloading_gb,
     )
     
     load_time = time.time() - start_time
