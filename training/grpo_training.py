@@ -188,7 +188,7 @@ trainer = GRPOTrainer(
     args=training_args,
     train_dataset=dataset,
     eval_dataset=eval_dataset,
-    # callbacks=[ProfilerCallback(profiler)] # prints out memory allocation for each step
+    callbacks=[ProfilerCallback(profiler)] # prints out memory allocation for each step
 )
 
 trainer.train()
