@@ -25,6 +25,9 @@ parser.add_argument("--quant_type", default="nf4", choices=["nf4", "fp4"], help=
 parser.add_argument("--double_quant", action="store_true", help="Use double quantization (nested)")
 parser.add_argument("--compute_dtype", default="float16", choices=["float16", "bfloat16"], help="Compute dtype")
 parser.add_argument("--use_8bit", action="store_true", help="Use 8-bit quantization instead of 4-bit")
+parser.add_argument("--task", choices=["aime", "countdown"], help="Task to train on")
+parser.add_argument("--train_dataset_path", help="Path to train dataset")
+parser.add_argument("--eval_dataset_path", help="Path to eval dataset")
 
 args = parser.parse_args()
 BASE_MODEL = AVAILABLE_MODELS[args.model]
@@ -81,12 +84,12 @@ class ProfilerCallback(TrainerCallback):
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"Using device: {device}")
-dataset = pd.read_json("../tasks/aime/aime_train_dataset.jsonl", orient="records", lines=True)
-eval_dataset = pd.read_json("../tasks/aime/aime_eval_dataset.jsonl", orient="records", lines=True)
+dataset = pd.read_json(args.train_dataset_path, orient="records", lines=True)
+eval_dataset = pd.read_json(args.eval_dataset_path, orient="records", lines=True)
 dataset = Dataset.from_pandas(dataset)
 eval_dataset = Dataset.from_pandas(eval_dataset)
 
-reward_functions = reward_function_mapping["aime"]
+reward_functions = reward_function_mapping[args.task]
 
 # Define LoRA configuration
 lora_config = LoraConfig(
