@@ -39,6 +39,7 @@ def equation_reward_func(prompts, completions, nums, target):
             match = re.search(r"<answer>\s*([\s\S]*?)\s*<\/answer>", completion)
             if not match:
                 print("No answer found in completion. Equation reward: 0.0")
+                rewards.append(0.0)
                 continue
 
             # Extract the "answer" part from the completion
@@ -54,25 +55,27 @@ def equation_reward_func(prompts, completions, nums, target):
             # Check if all numbers are used exactly once
             if sorted(used_numbers) != sorted(ind_nums):
                 print("Numbers used in equation not the same as in example. Equation reward: 0.0")
+                rewards.append(0.0)
                 continue
 
             # Define a regex pattern that only allows numbers, operators, parentheses, and whitespace
             allowed_pattern = r'^[\d+\-*/().\s]+$'
             if not re.match(allowed_pattern, equation):
                 print("Equation contains invalid characters. Equation reward: 0.0")
+                rewards.append(0.0)
                 continue
 
             # Evaluate the equation with restricted globals and locals
             result = eval(equation, {"__builtins__": None}, {})
             # Check if the equation is correct and matches the ground truth
             if abs(float(result) - float(ind_target)) < 1e-5:
-                reward = 1.0
+                rewards.append(1.0)
             else:
                 print("Equation is incorrect. Equation reward: 0.0")
+                rewards.append(0.0)
             
             print(f"Equation reward: {reward}")
             print("--------------------------------")
-            rewards.append(reward)
 
         except Exception:
             pass
