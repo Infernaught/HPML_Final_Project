@@ -89,6 +89,12 @@ def parse_arguments():
         default=0,
         help="Number of GB to offload to CPU"
     )
+    parser.add_argument(
+        "--max_model_len",
+        type=int,
+        default=None,
+        help="Maximum model length"
+    )
     return parser.parse_args()
 
 
@@ -106,6 +112,7 @@ def load_model(args):
         quantization=quantization,
         dtype=args.dtype,
         cpu_offload_gb=args.cpu_offloading_gb,
+        max_model_len=args.max_model_len,
     )
     
     load_time = time.time() - start_time
