@@ -76,6 +76,13 @@ def parse_arguments():
         default="None",
         help="Quantization method to use (awq, gptq, squeezellm, or None)"
     )
+    parser.add_argument(
+        "--dtype", 
+        type=str, 
+        choices=["float16", "bfloat16", "float32", "auto"],
+        default="auto",
+        help="Data type for model weights (float16, bfloat16, float32, or auto)"
+    )
     return parser.parse_args()
 
 
@@ -91,6 +98,7 @@ def load_model(args):
         tensor_parallel_size=args.tensor_parallel_size,
         gpu_memory_utilization=args.gpu_memory_utilization,
         quantization=quantization,
+        dtype=args.dtype,
     )
     
     load_time = time.time() - start_time
