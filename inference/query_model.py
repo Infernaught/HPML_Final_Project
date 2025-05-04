@@ -69,6 +69,13 @@ def parse_arguments():
         default=None,
         help="JSONL file to write the output to"
     )
+    parser.add_argument(
+        "--quantization", 
+        type=str, 
+        choices=["awq", "gptq", "squeezellm", "None"],
+        default="None",
+        help="Quantization method to use (awq, gptq, squeezellm, or None)"
+    )
     return parser.parse_args()
 
 
@@ -76,10 +83,14 @@ def load_model(args):
     print(f"Loading model: {args.model}")
     start_time = time.time()
     
+    # Convert quantization string to None if "None" is specified
+    quantization = None if args.quantization == "None" else args.quantization
+    
     model = LLM(
         model=args.model,
         tensor_parallel_size=args.tensor_parallel_size,
         gpu_memory_utilization=args.gpu_memory_utilization,
+        quantization=quantization,
     )
     
     load_time = time.time() - start_time
