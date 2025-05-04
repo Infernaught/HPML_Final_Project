@@ -35,7 +35,7 @@ BASE_MODEL = AVAILABLE_MODELS[args.model]
 # Initialize wandb
 wandb.init(
     project="grpo-training",  # Name of your project
-    name=f"grpo-{BASE_MODEL}",  # Name of this specific run
+    name=f"grpo-{BASE_MODEL}-{args.task}",  # Name of this specific run
     config={
         "model": BASE_MODEL,
         "lora_r": 16,
