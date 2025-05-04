@@ -89,9 +89,6 @@ class ProfilerCallback(TrainerCallback):
     
     def on_step_end(self, args, state, control, **kwargs):
         self.profiler.step()
-        step_num = self.profiler.step.num
-        self.profiler = create_profiler()
-        self.profiler.step.num = step_num
         
     def on_train_end(self, args, state, control, **kwargs):
         # Make sure to stop the profiler
