@@ -14,7 +14,7 @@ import torch
 from datasets import Dataset
 from training.constants import AVAILABLE_MODELS
 from training.reward_functions import reward_function_mapping
-import wandb
+# import wandb
 
 # argparse for selecting base model and quantization
 parser = argparse.ArgumentParser()
@@ -172,8 +172,8 @@ training_args = GRPOConfig(
     max_grad_norm=0.3,               # Clip gradients to prevent memory spikes
     num_generations=4,
     # Add wandb reporting
-    report_to="wandb",
-    run_name=wandb.run.name,
+    # report_to="wandb",
+    # run_name=wandb.run.name,
 )
 
 profiler = create_profiler()
