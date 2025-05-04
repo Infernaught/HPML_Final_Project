@@ -122,13 +122,11 @@ def load_model(args):
 
 
 def get_prompt(args):
-    if args.prompt:
-        return args.prompt
-    elif args.prompt_file:
+    if args.prompt_file:
         with open(args.prompt_file, "r") as f:
             return f.read()
     else:
-        raise ValueError("Either --prompt or --prompt_file must be provided")
+        raise ValueError("--prompt_file must be provided")
 
 
 def query_model(model, prompt, args):
