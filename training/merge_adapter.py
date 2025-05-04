@@ -3,7 +3,7 @@ import os
 import argparse
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from transformers import AutoModelForCausalLM
+from transformers import AutoModelForCausalLM, AutoTokenizer
 from peft import PeftModel
 from training.constants import AVAILABLE_MODELS
 from huggingface_hub import HfApi, login
@@ -117,6 +117,18 @@ def main():
     
     print(f"Model uploaded to: https://huggingface.co/{args.repo_id}")
     
+    # Save and upload the tokenizer
+    print("Saving tokenizer...")
+    tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL)
+    tokenizer.save_pretrained(args.output_dir)
+    
+    print("Uploading tokenizer...")
+    api.upload_folder(
+        folder_path=args.output_dir,
+        repo_id=args.repo_id,
+        repo_type="model",
+    )
+
     # Log the model URL to wandb
     wandb.log({"model_url": f"https://huggingface.co/{args.repo_id}"})
     
