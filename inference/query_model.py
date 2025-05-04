@@ -83,6 +83,11 @@ def parse_arguments():
         default="auto",
         help="Data type for model weights (float16, bfloat16, float32, or auto)"
     )
+    parser.add_argument(
+        "--cpu_offloading", 
+        action="store_true",
+        help="Enable CPU offloading for some model layers"
+    )
     return parser.parse_args()
 
 
@@ -99,6 +104,7 @@ def load_model(args):
         gpu_memory_utilization=args.gpu_memory_utilization,
         quantization=quantization,
         dtype=args.dtype,
+        cpu_offloading=args.cpu_offloading,
     )
     
     load_time = time.time() - start_time
