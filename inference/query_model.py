@@ -85,7 +85,8 @@ def parse_arguments():
     )
     parser.add_argument(
         "--cpu_offloading", 
-        action="store_true",
+        type=bool,
+        default=False,
         help="Enable CPU offloading for some model layers"
     )
     return parser.parse_args()
