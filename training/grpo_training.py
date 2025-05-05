@@ -166,11 +166,11 @@ training_args = GRPOConfig(
     metric_for_best_model="loss", # Use reward as the metric to track
     # Add memory optimization settings
     gradient_accumulation_steps=4,    # Accumulate gradients over 4 steps
-    per_device_train_batch_size=4,    # Use a batch size of 16
-    per_device_eval_batch_size=4,     # Use a batch size of 16 for evaluation
-    gradient_checkpointing=False,      # Enable gradient checkpointing
+    per_device_train_batch_size=8,    # Use a batch size of 16
+    per_device_eval_batch_size=8,     # Use a batch size of 16 for evaluation
+    gradient_checkpointing=True,      # Enable gradient checkpointing
     max_grad_norm=0.3,               # Clip gradients to prevent memory spikes
-    num_generations=4,
+    num_generations=8,
     # Add wandb reporting
     # report_to="wandb",
     # run_name=wandb.run.name,
