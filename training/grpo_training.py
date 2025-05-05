@@ -148,11 +148,11 @@ training_args = GRPOConfig(
     save_total_limit=3,          # Keep only the last 3 checkpoints
     load_best_model_at_end=True, # Load the best model when training ends
     metric_for_best_model="loss", # Use reward as the metric to track
-    max_completion_length=2048,
+    max_completion_length=1024,
     # Add memory optimization settings
     gradient_accumulation_steps=4,    # Accumulate gradients over 4 steps
-    per_device_train_batch_size=4,    # Use a batch size of 16
-    per_device_eval_batch_size=4,     # Use a batch size of 16 for evaluation
+    per_device_train_batch_size=4,    
+    per_device_eval_batch_size=4,
     gradient_checkpointing=True,      # Enable gradient checkpointing
     max_grad_norm=0.3,               # Clip gradients to prevent memory spikes
     num_generations=4,
