@@ -175,7 +175,7 @@ profiler = profile(
     record_shapes=False,
     with_flops=False,
     with_stack=False,
-    on_trace_ready=torch.profiler.tensorboard_trace_handler(log_dir)
+    # on_trace_ready=torch.profiler.tensorboard_trace_handler(log_dir)
 )
 
 
