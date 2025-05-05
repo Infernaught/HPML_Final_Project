@@ -70,6 +70,7 @@ def equation_reward_func(prompts, completions, nums, target):
             # Check if the equation is correct and matches the ground truth
             if abs(float(result) - float(ind_target)) < 1e-5:
                 rewards.append(1.0)
+                reward = 1.0
             else:
                 print("Equation is incorrect. Equation reward: 0.0")
                 rewards.append(0.0)
