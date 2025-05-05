@@ -109,7 +109,7 @@ reward_functions = reward_function_mapping["aime"]
 
 # Define LoRA configuration
 lora_config = LoraConfig(
-    r=128,                     # Rank
+    r=16,                     # Rank
     lora_alpha=32,           # Alpha scaling
     target_modules=["q_proj", "k_proj", "v_proj", "o_proj"],  # Which modules to apply LoRA to
     lora_dropout=0.05,
