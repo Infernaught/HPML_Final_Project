@@ -140,7 +140,7 @@ model.print_trainable_parameters()  # Print the percentage of trainable paramete
 gpu_memory_report("After LoRA -")
 
 training_args = GRPOConfig(
-    output_dir=f"outputs/{BASE_MODEL}",
+    output_dir=f"outputs/{BASE_MODEL}/{args.task}",
     logging_steps=5,
     save_strategy="steps",        # Save by steps instead of epochs
     eval_strategy="steps",
