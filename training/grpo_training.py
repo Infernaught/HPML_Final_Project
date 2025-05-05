@@ -138,10 +138,21 @@ else:
 
 # torch.cuda.reset_peak_memory_stats() # reset max GPU Memory allocation (profile = not needed)
 
+# before loading model do torch summary and the print again after loading model look for :
+# allocated_bytes.all.current
+"""
+for name, param in model.named_parameters():
+    print(name, param.dtype, type(param))
+
+<class 'bitsandbytes.nn.modules.Params4bit'>
+Or torch.int8 or torch.uint8 for 8-bit
 
 
+print(model.hf_device_map)  # Shows where each module lives (e.g., 'cuda:0', 'cpu')
+"""
+# reserved_bytes.all.current
 # Load the base model with quantization
-base_model = AutoModelForCausalLM.from_pretrained(
+base_model = AutoModelForCausalLM.from_pretrained( 
     BASE_MODEL,
     quantization_config=bnb_config,
     device_map="auto",
@@ -185,7 +196,7 @@ trainer = GRPOTrainer(
     args=training_args,
     train_dataset=dataset,
     eval_dataset=eval_dataset,
-    callbacks=[ProfilerCallback(profiler)] # prints out memory allocation for each step
+    # callbacks=[ProfilerCallback(profiler)] # prints out memory allocation for each step
 )
 
 trainer.train()
