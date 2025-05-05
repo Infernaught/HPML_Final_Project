@@ -47,23 +47,23 @@ BASE_MODEL = AVAILABLE_MODELS[args.model]
 #     }
 # )
 
-log_dir = "logs/profiler/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+# log_dir = "logs/profiler/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 
-def create_profiler():
-    profiler = profile(
-    schedule=torch.profiler.schedule( # this schedule will capture 3 steps throughout training process
-        wait=5,
-        warmup=2,
-        active=1,
-    ),
-    activities=[ProfilerActivity.CPU,ProfilerActivity.CUDA],
-        profile_memory=True, # only capture the memory as the rest are too expensive
-        record_shapes=False,
-        with_flops=False,
-        with_stack=False,
-        on_trace_ready=torch.profiler.tensorboard_trace_handler(log_dir)
-    )
-    return profiler
+# def create_profiler():
+#     profiler = profile(
+#     schedule=torch.profiler.schedule( # this schedule will capture 3 steps throughout training process
+#         wait=5,
+#         warmup=2,
+#         active=1,
+#     ),
+#     activities=[ProfilerActivity.CPU,ProfilerActivity.CUDA],
+#         profile_memory=True, # only capture the memory as the rest are too expensive
+#         record_shapes=False,
+#         with_flops=False,
+#         with_stack=False,
+#         on_trace_ready=torch.profiler.tensorboard_trace_handler(log_dir)
+#     )
+#     return profiler
 
 # create a function to print out memory allocations
 def gpu_memory_report(print_stmt = ""):
@@ -78,22 +78,22 @@ def gpu_memory_report(print_stmt = ""):
 #     def on_step_end(self, args, state, control, **kwargs):
 #         gpu_memory_report(f"Step {state.global_step} - ")
 
-class ProfilerCallback(TrainerCallback):
-    def __init__(self, profiler):
-        self.profiler = profiler
+# class ProfilerCallback(TrainerCallback):
+#     def __init__(self, profiler):
+#         self.profiler = profiler
         
-    def on_train_begin(self, args, state, control, **kwargs):
-        # Optionally start the profiler here
-        if hasattr(self.profiler, "start"):
-            self.profiler.start()
+#     def on_train_begin(self, args, state, control, **kwargs):
+#         # Optionally start the profiler here
+#         if hasattr(self.profiler, "start"):
+#             self.profiler.start()
     
-    def on_step_end(self, args, state, control, **kwargs):
-        self.profiler.step()
+#     def on_step_end(self, args, state, control, **kwargs):
+#         self.profiler.step()
         
-    def on_train_end(self, args, state, control, **kwargs):
-        # Make sure to stop the profiler
-        if hasattr(self.profiler, "stop"):
-            self.profiler.stop()
+#     def on_train_end(self, args, state, control, **kwargs):
+#         # Make sure to stop the profiler
+#         if hasattr(self.profiler, "stop"):
+#             self.profiler.stop()
             
 
 # torch.cuda.memory._record_memory_history() # will record memory allocation over time (then save to pickle at end)
@@ -187,7 +187,7 @@ training_args = GRPOConfig(
     # run_name=wandb.run.name,
 )
 
-profiler = create_profiler()
+# profiler = create_profiler()
 
 
 trainer = GRPOTrainer(
