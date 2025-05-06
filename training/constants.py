@@ -6,5 +6,5 @@ AIME_TRAIN_DATASET_PATH_DISTILLED = "./tasks/aime/aime_train_dataset_distilled.j
 AVAILABLE_MODELS = {
     "phi": "microsoft/Phi-3.5-mini-instruct",
     "llama": "meta-llama/Llama-3-8b-instruct",
-    "deepseek": "deepseek-ai/deepseek-llm-7b-instruct",
+    "deepseek": "deepseek-ai/deepseek-coder-7b-instruct-v1.5",
 }
