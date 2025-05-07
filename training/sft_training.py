@@ -52,7 +52,8 @@ if args.task == "countdown":
 tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL, trust_remote_code=True)
 chat_templatted_dataset = []
 for example in dataset:
-    chat_templatted_dataset.append(tokenizer.apply_chat_template(example["prompt"], tokenize=False, add_generation_prompt=True))
+    prompt = tokenizer.apply_chat_template(example["prompt"], tokenize=False, add_generation_prompt=True)
+    chat_templatted_dataset.append({"prompt": prompt, "completion": example["completion"]})
 dataset = Dataset.from_list(chat_templatted_dataset)
 print(dataset[0])
 
