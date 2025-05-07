@@ -12,7 +12,7 @@ from trl import GRPOConfig
 from training.grpo_trainer import GRPOTrainer
 from transformers import AutoModelForCausalLM, BitsAndBytesConfig, TrainerCallback
 from torch.profiler import profile, record_function, ProfilerActivity
-from peft import LoraConfig, get_peft_model
+from peft import LoraConfig, get_peft_model, PeftModel
 import torch
 from datasets import Dataset
 from training.constants import AVAILABLE_MODELS
@@ -32,13 +32,19 @@ parser.add_argument("--task", choices=["aime", "countdown"], help="Task to train
 parser.add_argument("--train_dataset_path", help="Path to train dataset")
 parser.add_argument("--eval_dataset_path", help="Path to eval dataset")
 parser.add_argument("--output_dir", help="Path to output directory")
+parser.add_argument("--adapter_repo", help="Hugging Face Hub repository ID for the adapter", required=False)
 
 args = parser.parse_args()
 BASE_MODEL = AVAILABLE_MODELS[args.model]
 
 # Initialize wandb
+if args.adapter_repo:
+    project = "sft-pretrained-grpo-training"
+else:
+    project = "grpo-training"
+
 wandb.init(
-    project="grpo-training",  # Name of your project
+    project=project,  # Name of your project
     name=f"grpo-{BASE_MODEL}-{args.task}",  # Name of this specific run
     config={
         "model": BASE_MODEL,
@@ -51,6 +57,7 @@ wandb.init(
         "double_quant": args.double_quant,
         "compute_dtype": args.compute_dtype,
         "use_8bit": args.use_8bit,
+        "adapter_repo": args.adapter_repo,
     }
 )
 
@@ -204,6 +211,18 @@ base_model = AutoModelForCausalLM.from_pretrained(
     attn_implementation="eager", # - use flash_attention_2 for A100/H100
 ).to(device)
 gpu_memory_report("After Loading Model -")
+
+# If an adapter repo is specified, load and merge it
+if args.adapter_repo:
+    print(f"Loading adapter from {args.adapter_repo}")
+    adapter_model = PeftModel.from_pretrained(
+        base_model,
+        args.adapter_repo,
+        is_trainable=False
+    )
+    print("Merging adapter weights with base model...")
+    base_model = adapter_model.merge_and_unload()
+    print("Adapter merged successfully")
 
 # Resize token embeddings to match tokenizer size (required after adding UNK token)
 base_model.resize_token_embeddings(len(tokenizer))
