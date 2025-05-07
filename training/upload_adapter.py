@@ -32,7 +32,6 @@ def parse_args():
 
 def main():
     args = parse_args()
-    BASE_MODEL = AVAILABLE_MODELS[args.base_model]
     
     # Login to Hugging Face (requires HUGGING_FACE_TOKEN environment variable to be set)
     if "HUGGING_FACE_TOKEN" not in os.environ:
