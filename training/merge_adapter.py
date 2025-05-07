@@ -18,12 +18,6 @@ def parse_args():
         help="Path to the adapter model (e.g., './sft_outputs/microsoft/Phi-3.5-mini-instruct/checkpoint-570')"
     )
     parser.add_argument(
-        "--output_dir", 
-        type=str, 
-        default="./merged_model",
-        help="Directory to save the merged model"
-    )
-    parser.add_argument(
         "--repo_id", 
         type=str, 
         required=True,
@@ -40,7 +34,6 @@ def parse_args():
         default="model-merging",
         help="Weights & Biases project name"
     )
-
     parser.add_argument(
         "--base_model",
         type=str,
@@ -60,11 +53,26 @@ def main():
         config={
             "base_model": BASE_MODEL,
             "adapter_path": args.adapter_path,
-            "output_dir": args.output_dir,
             "repo_id": args.repo_id,
             "private": args.private
         }
     )
+    
+    # Login to Hugging Face (requires HUGGING_FACE_TOKEN environment variable to be set)
+    if "HUGGING_FACE_TOKEN" not in os.environ:
+        print("Error: HUGGING_FACE_TOKEN environment variable not set. Cannot upload to Hugging Face Hub.")
+        wandb.finish()
+        return
+    
+    print("Logging in to Hugging Face Hub...")
+    login(token=os.environ["HUGGING_FACE_TOKEN"])
+    
+    # Initialize the Hugging Face API client
+    api = HfApi()
+    
+    # Create the repository
+    print(f"Creating repository: {args.repo_id}")
+    api.create_repo(args.repo_id, private=args.private, exist_ok=True)
     
     print(f"Loading base model: {BASE_MODEL}")
     # Load the base model
@@ -86,49 +94,16 @@ def main():
     # Merge adapter weights with base model
     merged_model = adapter_model.merge_and_unload()
     
-    # Save the merged model
-    print(f"Saving merged model to: {args.output_dir}")
-    merged_model.save_pretrained(args.output_dir)
-    print(f"Merged model saved to {args.output_dir}")
+    # Get the tokenizer
+    tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL)
     
-    # Login to Hugging Face (requires HUGGING_FACE_TOKEN environment variable to be set)
-    if "HUGGING_FACE_TOKEN" not in os.environ:
-        print("Warning: HUGGING_FACE_TOKEN environment variable not set. Cannot upload to Hugging Face Hub.")
-        wandb.finish()
-        return
-    
-    print("Logging in to Hugging Face Hub...")
-    login(token=os.environ["HUGGING_FACE_TOKEN"])
-    
-    # Initialize the Hugging Face API client
-    api = HfApi()
-    
-    # Upload the model to the Hub
-    print(f"Creating repository: {args.repo_id}")
-    api.create_repo(args.repo_id, private=args.private, exist_ok=True)
-    
-    # Push the model to the Hub
+    # Push the model and tokenizer directly to the Hub
     print(f"Uploading model to: {args.repo_id}")
-    api.upload_folder(
-        folder_path=args.output_dir,
-        repo_id=args.repo_id,
-        repo_type="model",
-    )
+    merged_model.push_to_hub(args.repo_id)
+    tokenizer.push_to_hub(args.repo_id)
     
     print(f"Model uploaded to: https://huggingface.co/{args.repo_id}")
     
-    # Save and upload the tokenizer
-    print("Saving tokenizer...")
-    tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL)
-    tokenizer.save_pretrained(args.output_dir)
-    
-    print("Uploading tokenizer...")
-    api.upload_folder(
-        folder_path=args.output_dir,
-        repo_id=args.repo_id,
-        repo_type="model",
-    )
-
     # Log the model URL to wandb
     wandb.log({"model_url": f"https://huggingface.co/{args.repo_id}"})
     
