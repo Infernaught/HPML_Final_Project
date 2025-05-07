@@ -46,6 +46,7 @@ countdown_prompts = []
 if args.task == "countdown":
     for line in dataset:
         countdown_prompts.append(f"Using the numbers {line['nums']}, create an equation that equals {line['target']}. You can use basic arithmetic operations (+, -, *, /) and parentheses, and each number can only be used once. Show your work in <think> </think> tags. And return the final equation and answer in <answer> </answer> tags, for example <answer> (1 + 2) / 3 </answer>.")
+    dataset = dataset.add_column("prompt", countdown_prompts)
 
 # Distilled datasets don't have the chat template applied yet, so we need to apply it
 tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL, trust_remote_code=True)
