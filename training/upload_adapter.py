@@ -36,7 +36,6 @@ def main():
     # Login to Hugging Face (requires HUGGING_FACE_TOKEN environment variable to be set)
     if "HUGGING_FACE_TOKEN" not in os.environ:
         print("Warning: HUGGING_FACE_TOKEN environment variable not set. Cannot upload to Hugging Face Hub.")
-        wandb.finish()
         return
     
     print("Logging in to Hugging Face Hub...")
@@ -58,12 +57,6 @@ def main():
     )
     
     print(f"Model uploaded to: https://huggingface.co/{args.repo_id}")
-
-    # Log the model URL to wandb
-    wandb.log({"model_url": f"https://huggingface.co/{args.repo_id}"})
     
-    # Finish wandb run
-    wandb.finish()
-
 if __name__ == "__main__":
     main()
