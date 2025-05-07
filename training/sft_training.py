@@ -26,7 +26,7 @@ BASE_MODEL = AVAILABLE_MODELS[args.model]
 # Initialize wandb
 wandb.init(
     project="sft-training",
-    name=f"sft-{BASE_MODEL}",
+    name=f"sft-{BASE_MODEL}-{args.task}",
     config={
         "model": BASE_MODEL,
         "lora_r": 16,
