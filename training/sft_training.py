@@ -5,13 +5,23 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 import pandas as pd
 from trl import SFTConfig, SFTTrainer
-from transformers import AutoModelForCausalLM, BitsAndBytesConfig
+from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 from peft import LoraConfig, get_peft_model
 import torch
 from torch.profiler import profile, record_function, ProfilerActivity
 from datasets import Dataset
-from training.constants import BASE_MODEL, AIME_TRAIN_DATASET_PATH_DISTILLED
+from training.constants import AVAILABLE_MODELS, AIME_TRAIN_DATASET_PATH_DISTILLED
 import wandb
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--model", type=str, choices=AVAILABLE_MODELS.keys(), required=True)
+parser.add_argument("--output_dir", type=str, required=True)
+parser.add_argument("--task", type=str, choices=["aime", "countdown"], required=True)
+parser.add_argument("--train_dataset_path", type=str, required=True)
+args = parser.parse_args()
+
+BASE_MODEL = AVAILABLE_MODELS[args.model]
 
 # Initialize wandb
 wandb.init(
@@ -28,8 +38,23 @@ wandb.init(
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"Using device: {device}")
-dataset = pd.read_json(AIME_TRAIN_DATASET_PATH_DISTILLED, orient="records", lines=True)
+dataset = pd.read_json(args.train_dataset_path, orient="records", lines=True)
 dataset = Dataset.from_pandas(dataset)
+
+# Specific processing for countdown distilled dataset
+countdown_prompts = []
+if args.task == "countdown":
+    for line in dataset:
+        countdown_prompts.append(f"Using the numbers {line['nums']}, create an equation that equals {line['target']}. You can use basic arithmetic operations (+, -, *, /) and parentheses, and each number can only be used once. Show your work in <think> </think> tags. And return the final equation and answer in <answer> </answer> tags, for example <answer> (1 + 2) / 3 </answer>.")
+    dataset = dataset.add_column("prompt", countdown_prompts)
+
+# Distilled datasets don't have the chat template applied yet, so we need to apply it
+tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL, trust_remote_code=True)
+chat_templatted_dataset = []
+for example in dataset:
+    chat_templatted_dataset.append(tokenizer.apply_chat_template(example["prompt"], tokenize=False, add_generation_prompt=True))
+dataset = Dataset.from_list(chat_templatted_dataset)
+print(dataset[0])
 
 # Define LoRA configuration
 lora_config = LoraConfig(
@@ -62,11 +87,15 @@ base_model = AutoModelForCausalLM.from_pretrained(
 model = get_peft_model(base_model, lora_config)
 model.print_trainable_parameters()  # Print the percentage of trainable parameters
 
+output_dir = args.output_dir
+if output_dir is None:
+    output_dir = f"sft_outputs/{BASE_MODEL}/{args.task}"
+
 training_args = SFTConfig(
-    output_dir=f"sft_outputs/{BASE_MODEL}",
+    output_dir=output_dir,
     logging_steps=50,
     save_strategy="steps",
-    save_steps=50,
+    save_steps=15,
     save_total_limit=3,
     per_device_train_batch_size=1,  
     gradient_accumulation_steps=4,  
