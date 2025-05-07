@@ -31,6 +31,7 @@ parser.add_argument("--use_8bit", action="store_true", help="Use 8-bit quantizat
 parser.add_argument("--task", choices=["aime", "countdown"], help="Task to train on")
 parser.add_argument("--train_dataset_path", help="Path to train dataset")
 parser.add_argument("--eval_dataset_path", help="Path to eval dataset")
+parser.add_argument("--output_dir", help="Path to output directory")
 
 args = parser.parse_args()
 BASE_MODEL = AVAILABLE_MODELS[args.model]
@@ -221,8 +222,12 @@ model.print_trainable_parameters()  # Print the percentage of trainable paramete
 
 gpu_memory_report("After LoRA -")
 
+output_dir = args.output_dir
+if output_dir is None:
+    output_dir = f"outputs/{BASE_MODEL}/{args.task}"
+
 training_args = GRPOConfig(
-    output_dir=f"outputs/{BASE_MODEL}/{args.task}",
+    output_dir=output_dir,
     logging_steps=5,
     save_strategy="steps",        # Save by steps instead of epochs
     eval_strategy="steps",
