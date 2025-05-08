@@ -3,17 +3,24 @@ import argparse
 import pandas as pd
 import time
 from typing import Dict, List, Optional, Union
-
-from vllm import LLM, SamplingParams
+import torch
+from transformers import AutoModelForCausalLM, AutoTokenizer
+from peft import PeftModel
 
 
 def parse_arguments():
-    parser = argparse.ArgumentParser(description="Serve and query a model using vllm")
+    parser = argparse.ArgumentParser(description="Query a model with optional adapter weights")
     parser.add_argument(
         "--model", 
         type=str, 
         required=True,
         help="Path to the model or model name to load"
+    )
+    parser.add_argument(
+        "--adapter_repo",
+        type=str,
+        default=None,
+        help="Hugging Face Hub repository ID for the adapter"
     )
     parser.add_argument(
         "--prompt_file", 
@@ -52,48 +59,26 @@ def parse_arguments():
         help="Top-k sampling parameter"
     )
     parser.add_argument(
-        "--gpu_memory_utilization", 
-        type=float, 
-        default=0.9,
-        help="GPU memory utilization target (0.0 to 1.0)"
-    )
-    parser.add_argument(
-        "--tensor_parallel_size", 
-        type=int, 
-        default=1,
-        help="Number of GPUs to use for tensor parallelism"
-    )
-    parser.add_argument(
         "--output_file", 
         type=str, 
         default=None,
         help="JSONL file to write the output to"
     )
     parser.add_argument(
-        "--quantization", 
-        type=str, 
-        choices=["awq", "gptq", "squeezellm", "None"],
-        default="None",
-        help="Quantization method to use (awq, gptq, squeezellm, or None)"
+        "--device",
+        type=str,
+        default="cuda" if torch.cuda.is_available() else "cpu",
+        help="Device to run the model on (cuda or cpu)"
     )
     parser.add_argument(
-        "--dtype", 
-        type=str, 
-        choices=["float16", "bfloat16", "float32", "auto"],
-        default="auto",
-        help="Data type for model weights (float16, bfloat16, float32, or auto)"
+        "--load_in_8bit",
+        action="store_true",
+        help="Load the model in 8-bit precision"
     )
     parser.add_argument(
-        "--cpu_offloading_gb", 
-        type=int,
-        default=0,
-        help="Number of GB to offload to CPU"
-    )
-    parser.add_argument(
-        "--max_model_len",
-        type=int,
-        default=None,
-        help="Maximum model length"
+        "--load_in_4bit",
+        action="store_true",
+        help="Load the model in 4-bit precision"
     )
     return parser.parse_args()
 
@@ -102,57 +87,67 @@ def load_model(args):
     print(f"Loading model: {args.model}")
     start_time = time.time()
     
-    # Convert quantization string to None if "None" is specified
-    quantization = None if args.quantization == "None" else args.quantization
-    
-    model = LLM(
-        model=args.model,
-        tensor_parallel_size=args.tensor_parallel_size,
-        gpu_memory_utilization=args.gpu_memory_utilization,
-        quantization=quantization,
-        dtype=args.dtype,
-        cpu_offload_gb=args.cpu_offloading_gb,
-        max_model_len=args.max_model_len,
+    # Load the base model
+    model = AutoModelForCausalLM.from_pretrained(
+        args.model,
+        device_map="auto",
+        load_in_8bit=args.load_in_8bit,
+        load_in_4bit=args.load_in_4bit,
+        torch_dtype=torch.float16 if not (args.load_in_8bit or args.load_in_4bit) else None,
     )
     
+    # Load tokenizer
+    tokenizer = AutoTokenizer.from_pretrained(args.model)
+    
+    # If an adapter is specified, load and merge it
+    if args.adapter_repo:
+        print(f"Loading adapter from {args.adapter_repo}")
+        model = PeftModel.from_pretrained(
+            model,
+            args.adapter_repo,
+            is_trainable=False
+        )
+        print("Adapter loaded successfully")
+    
+    model.eval()
     load_time = time.time() - start_time
     print(f"Model loaded in {load_time:.2f} seconds")
     
-    return model
+    return model, tokenizer
 
 
-def get_prompt(args):
-    if args.prompt_file:
-        with open(args.prompt_file, "r") as f:
-            return f.read()
-    else:
-        raise ValueError("--prompt_file must be provided")
-
-
-def query_model(model, prompt, args):
+def query_model(model, tokenizer, prompt, args):
     print("Querying model...")
     start_time = time.time()
     
-    sampling_params = SamplingParams(
-        temperature=args.temperature,
-        top_p=args.top_p,
-        top_k=args.top_k,
-        max_tokens=args.max_tokens,
-    )
+    # Tokenize the prompt
+    inputs = tokenizer(prompt, return_tensors="pt").to(args.device)
     
-    outputs = model.generate(prompt, sampling_params)
+    # Generate
+    with torch.no_grad():
+        outputs = model.generate(
+            **inputs,
+            max_new_tokens=args.max_tokens,
+            temperature=args.temperature,
+            top_p=args.top_p,
+            top_k=args.top_k,
+            do_sample=True,
+            pad_token_id=tokenizer.eos_token_id
+        )
+    
+    # Decode the output
+    output_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
     
     inference_time = time.time() - start_time
     print(f"Inference completed in {inference_time:.2f} seconds")
     
-    return outputs[0].outputs[0].text, inference_time
+    return output_text, inference_time
 
 
 def main():
     args = parse_arguments()
     
-    model = load_model(args)
-    prompt = get_prompt(args)
+    model, tokenizer = load_model(args)
 
     if not args.prompt_file:
         raise ValueError("Prompt file is required")
@@ -162,7 +157,7 @@ def main():
     total_inference_time = 0
     for i, row in df.iterrows():
         prompt = row[args.prompt_column]
-        output, inference_time = query_model(model, prompt, args)
+        output, inference_time = query_model(model, tokenizer, prompt, args)
         total_inference_time += inference_time
         print("\n--- Generated Output ---")
         print(output)
