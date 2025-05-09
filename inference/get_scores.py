@@ -4,6 +4,7 @@ import pandas as pd
 from typing import List, Dict
 import sys
 import os
+import contextlib
 
 # Add the root directory to sys.path so Python can find 'tasks'
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -39,12 +40,13 @@ def score_aime_outputs(df: pd.DataFrame) -> List[Dict]:
     outputs = df["output"].tolist()
     
     # The answers should be in the same order as the prompts
-    with open("tasks/aime/aime_eval_dataset.jsonl", "r") as f:
+    with open("../tasks/aime/aime_eval_dataset.jsonl", "r") as f:
         eval_df = pd.read_json(f, orient="records", lines=True)
     eval_answers = eval_df["answer"].tolist()
 
     # Get scores from each reward function
-    equation_scores = aime_equation_reward(prompts, outputs, eval_answers)
+    with contextlib.redirect_stdout(None):
+        equation_scores = aime_equation_reward(prompts, outputs, eval_answers)
     
     # Combine scores into results
     results = []
@@ -76,7 +78,8 @@ def score_countdown_outputs(df: pd.DataFrame) -> List[Dict]:
         targets.append(int(target))
     
     # Get scores from each reward function
-    equation_scores = countdown_equation_reward(prompts, outputs, nums, targets)
+    with contextlib.redirect_stdout(None):
+        equation_scores = countdown_equation_reward(prompts, outputs, nums, targets)
     
     # Combine scores into results
     results = []
