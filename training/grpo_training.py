@@ -1,15 +1,12 @@
 import sys
 import os
 import datetime
-
 # Add the root directory to sys.path so Python can find 'tasks'
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 import pandas as pd
 import argparse
-
-#from trl import GRPOConfig, GRPOTrainer
-from trl import GRPOConfig
-from training.grpo_trainer import GRPOTrainer
+from trl import GRPOConfig, GRPOTrainer
 from transformers import AutoModelForCausalLM, BitsAndBytesConfig, TrainerCallback
 from torch.profiler import profile, record_function, ProfilerActivity
 from peft import LoraConfig, get_peft_model, PeftModel
@@ -92,80 +89,13 @@ class ProfilerCallback(TrainerCallback):
             self.profiler.stop()
 
 # torch.cuda.memory._record_memory_history() # will record memory allocation over time (then save to pickle at end)
+
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"Using device: {device}")
-
-# dataset = pd.read_json(args.train_dataset_path, orient="records", lines=True)
-# eval_dataset = pd.read_json(args.eval_dataset_path, orient="records", lines=True)
-# dataset = Dataset.from_pandas(dataset)
-# eval_dataset = Dataset.from_pandas(eval_dataset)
-
-
-# load dataset using huggingface lib instead of pandas
-from datasets import load_dataset
-dataset = load_dataset("json", data_files=args.train_dataset_path, split="train")
-eval_dataset = load_dataset("json", data_files=args.eval_dataset_path, split="train")
-
-
-# tokenize dataset before feeding to the model
-from transformers import AutoTokenizer
-
-# Load tokenizer
-tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL, trust_remote_code=True)
-
-print("Tokenizer vocab size:", tokenizer.vocab_size)
-print("Special token IDs added:")
-print("New vocab size:", tokenizer.vocab_size)
-
-
-# Define batch-aware tokenizer function
-def tokenize_function(examples):
-    return tokenizer(
-        examples["prompt"],
-        padding=False,       
-        truncation=True,
-        max_length=1024,
-    )
-
-# Tokenize
-dataset = dataset.map(tokenize_function, batched=True, remove_columns=["prompt"])
-eval_dataset = eval_dataset.map(tokenize_function, batched=True, remove_columns=["prompt"])
-
-print("Tokenizer:", tokenizer.name_or_path)
-print("Vocab size:", tokenizer.vocab_size)
-print("Pad token:", tokenizer.pad_token, tokenizer.pad_token_id)
-print("UNK token:", tokenizer.unk_token, tokenizer.unk_token_id)
-
-print("Special tokens map:", tokenizer.special_tokens_map)
-print("Additional special tokens:", tokenizer.additional_special_tokens)
-print("EOS token:", tokenizer.eos_token)
-print("EOS token ID:", tokenizer.eos_token_id)
-print("Pad token:", tokenizer.pad_token)
-print("Pad token ID:", tokenizer.pad_token_id)
-print("Tokenizer vocab size:", tokenizer.vocab_size)
-
-print(tokenizer.all_special_ids)
-
-
-valid_token_ids = set(tokenizer.get_vocab().values())
-special_token_ids = set(tokenizer.all_special_ids)
-
-for i, example in enumerate(dataset):
-    for tok_id in example["input_ids"]:
-        if tok_id not in valid_token_ids and tok_id not in special_token_ids:
-            print(f"❌ Invalid token ID {tok_id} at example {i}")
-            print("Text:", example)
-            break
-
-
-for i, example in enumerate(eval_dataset):
-    for tok_id in example["input_ids"]:
-        if tok_id not in valid_token_ids and tok_id not in special_token_ids:
-            print(f"❌ Invalid token ID {tok_id} at example {i}")
-            print("Text:", example)
-            break
-
-
+dataset = pd.read_json(args.train_dataset_path, orient="records", lines=True)
+eval_dataset = pd.read_json(args.eval_dataset_path, orient="records", lines=True)
+dataset = Dataset.from_pandas(dataset)
+eval_dataset = Dataset.from_pandas(eval_dataset)
 
 reward_functions = reward_function_mapping[args.task]
 
@@ -238,7 +168,6 @@ print(f"Final tokenizer vocab size: {tokenizer.vocab_size}")
 model = get_peft_model(base_model, lora_config)
 model.print_trainable_parameters()  # Print the percentage of trainable parameters
 
-
 gpu_memory_report("After LoRA -")
 
 output_dir = args.output_dir
@@ -254,7 +183,7 @@ training_args = GRPOConfig(
     save_total_limit=3,          # Keep only the last 3 checkpoints
     load_best_model_at_end=True, # Load the best model when training ends
     metric_for_best_model="loss", # Use reward as the metric to track
-    max_completion_length=512,
+    max_completion_length=256,
     # Add memory optimization settings
     gradient_accumulation_steps=4,    # Accumulate gradients over 4 steps
     per_device_train_batch_size=4,    
@@ -284,17 +213,14 @@ profiler = profile(
     # on_trace_ready=torch.profiler.tensorboard_trace_handler(log_dir)
 )
 
-from transformers import DataCollatorWithPadding
 
 trainer = GRPOTrainer(
     model=model,
     reward_funcs=reward_functions,
-    tokenizer=tokenizer, 
     args=training_args,
     train_dataset=dataset,
     eval_dataset=eval_dataset,
-    data_collator=DataCollatorWithPadding(tokenizer=tokenizer),
-    callbacks=[ProfilerCallback(profiler)] # prints out memory allocation for each step
+    # callbacks=[ProfilerCallback(profiler)] # prints out memory allocation for each step
 )
 
 trainer.train()
