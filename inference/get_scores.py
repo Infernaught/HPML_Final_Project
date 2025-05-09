@@ -72,7 +72,7 @@ def score_countdown_outputs(df: pd.DataFrame) -> List[Dict]:
         # Extract numbers and target using string manipulation
         numbers_list = prompt.split("Using the numbers [")[1].split("]")[0].strip().split(", ")
         target = prompt.split("create an equation that equals ")[1].split(".")[0].strip()
-        nums.append(eval(numbers_list))  # Convert string representation of list to actual list
+        nums.append(numbers_list)  # Convert string representation of list to actual list
         targets.append(int(target))
     
     # Get scores from each reward function
