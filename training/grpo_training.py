@@ -154,16 +154,6 @@ if args.adapter_repo:
     base_model = adapter_model.merge_and_unload()
     print("Adapter merged successfully")
 
-# Resize token embeddings to match tokenizer size (required after adding UNK token)
-base_model.resize_token_embeddings(len(tokenizer))
-#print(f"Model embedding matrix size: {model.base_model.model.embed_tokens.weight.shape}")
-
-
-print(f"Final tokenizer vocab size: {tokenizer.vocab_size}")
-
-
-
-
 # Apply LoRA to the model
 model = get_peft_model(base_model, lora_config)
 model.print_trainable_parameters()  # Print the percentage of trainable parameters
