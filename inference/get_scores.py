@@ -107,12 +107,6 @@ def main():
     total_score = sum(r["equation_score"] for r in results)
     print(f"\nScoring Summary for {args.task.upper()} task:")
     print(f"Total score: {total_score}")
-    print("\nDetailed Scores:")
-    for i, result in enumerate(results):
-        print(f"\nExample {i+1}:")
-        print(f"Prompt: {result['prompt']}")
-        print(f"Output: {result['output']}")
-        print(f"Equation score: {result['equation_score']}")
     
     # Save results if output file is specified
     if args.output_file:
