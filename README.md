@@ -108,11 +108,11 @@ E. Profiling
 ![alt text](<Screenshot 2025-05-11 at 10.49.21 PM.png>)
 
 5. Notes
-All GRPO datasets are in tasks/, preprocessed via get_aime_dataset.py or get_countdown_dataset.py.
-Fine-tuned adapters are uploaded via upload_adapter.py.
+- All GRPO datasets are in tasks/, preprocessed via get_aime_dataset.py or get_countdown_dataset.py.
+- Fine-tuned adapters are uploaded via upload_adapter.py.
 All logs and TensorBoard profiles (until May 16th) can be accessed at:
->> T4 vs. L4 Comparison
->> DeepSeek vs. Phi Comparison
-Final scores are located in inference/scores/.
-Profiling logs are saved in ./logs/profiler.
+-- T4 vs. L4 Comparison
+-- DeepSeek vs. Phi Comparison
+- Final scores are located in inference/scores/.
+- Profiling logs are saved in ./logs/profiler.
 
