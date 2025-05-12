@@ -40,14 +40,15 @@ On the **AIME 2024** dataset, which is significantly more challenging, our light
 | Metric               | Value (DeepSeek-AIME, Phi-Countdown) |
 |----------------------|--------------------------------------|
 | Final Score          | 20 %                                 |
-| Inference Latency    | [Insert if measured] ms              |
-| Model Size           | 6.91B (deepseek)/ 3.82B (quantized)  |
+| Inference Latency    | ? ms                                 |
+| Model Size           | Phi- 3.82B (non-quantized)           |
 | Peak Memory Use      | Fits within 16 GB T4 VRAM            |
 | Training Time/Epoch  | 3 epochs                             |
 | Device               | NVIDIA T4 GPU                        |
 
 
-
+![alt text](<Screenshot 2025-05-12 151353.png>)
+*Table: Experiments on Phi-3.5 Mini model on Countdown task*
 ---
 
 ## 4. Reproducibility Instructions
