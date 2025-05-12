@@ -35,7 +35,7 @@ We apply **Group Relative Policy Optimization (GRPO)**, **Supervised Fine-Tuning
 
 | Metric               | Value (DeepSeek-AIME, Phi-Countdown) |
 |----------------------|--------------------------------------|
-| Final Accuracy       | [Insert if available]                |
+| Final Score          | 0.20                                 |
 | Inference Latency    | [Insert if measured] ms              |
 | Model Size           | 6.91B (deepseek)/ 3.82B (quantized)  |
 | Peak Memory Use      | Fits within 16 GB T4 VRAM            |
@@ -110,9 +110,6 @@ E. Profiling
 5. Notes
 - All GRPO datasets are in tasks/, preprocessed via get_aime_dataset.py or get_countdown_dataset.py.
 - Fine-tuned adapters are uploaded via upload_adapter.py.
-All logs and TensorBoard profiles (until May 16th) can be accessed at:
--- T4 vs. L4 Comparison
--- DeepSeek vs. Phi Comparison
 - Final scores are located in inference/scores/.
 - Profiling logs are saved in ./logs/profiler.
 
