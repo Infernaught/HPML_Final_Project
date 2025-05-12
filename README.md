@@ -46,10 +46,10 @@ On the **AIME 2024** dataset, which is significantly more challenging, our light
 | Training Time/Epoch  | 3 epochs                             |
 | Device               | NVIDIA T4 GPU                        |
 
-
+*Table: Experiments with Phi-3.5 Mini model on Countdown task*
 ![alt text](table.jpg)
 
-*Table: Experiments on Phi-3.5 Mini model on Countdown task*
+
 ---
 
 ## 4. Reproducibility Instructions
