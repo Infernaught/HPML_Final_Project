@@ -1,0 +1,13 @@
+torch==2.6.0
+transformers==4.51.3
+datasets==3.6.0
+peft==0.15.2
+accelerate==1.6.0
+bitsandbytes==0.45.5
+trl==0.17.0
+huggingface-hub==0.31.1
+sentencepiece==0.1.99  
+numpy==2.0.2
+pandas==2.2.2
+wandb==0.19.11
+openai==1.77.0  
