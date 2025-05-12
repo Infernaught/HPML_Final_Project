@@ -37,7 +37,7 @@ The following results are from the **Countdown** dataset. The highest score of 2
 
 On the **AIME 2024** dataset, which is significantly more challenging, our lightweight models—Phi-3.5 Mini and quantized DeepSeek-R1—could not keep up, achieving near-zero scores (e.g., ~0.05 accuracy). highlighting the challenge of solving advanced competition problems even with fine-tuning. However, the outputs produced by our adapters did reflect the models’ capacities to learn reasoning, despite their poor performance.
 
-| Metric               | Value (DeepSeek-AIME, Phi-Countdown) |
+| Metric               | Value                                |
 |----------------------|--------------------------------------|
 | Final Score          | 20 %                                 |
 | Inference Latency    | ? ms                                 |
