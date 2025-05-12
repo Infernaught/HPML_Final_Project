@@ -33,13 +33,17 @@ We apply **Group Relative Policy Optimization (GRPO)**, **Supervised Fine-Tuning
 
 ## 3. Final Results Summary
 
+The following results are from the **Countdown** dataset. The highest score of 20% was obtained by non-quantized Phi model, trained on 100 samples with max-token length of 1024 trained for 3 epochs.
+
+On the **AIME 2024** dataset, which is significantly more challenging, our lightweight models—Phi-3.5 Mini and quantized DeepSeek-R1—could not keep up, achieving near-zero scores (e.g., ~0.05 accuracy). highlighting the challenge of solving advanced competition problems even with fine-tuning. However, the outputs produced by our adapters did reflect the models’ capacities to learn reasoning, despite their poor performance.
+
 | Metric               | Value (DeepSeek-AIME, Phi-Countdown) |
 |----------------------|--------------------------------------|
-| Final Score          | 0.20                                 |
+| Final Score          | 20 %                                 |
 | Inference Latency    | [Insert if measured] ms              |
 | Model Size           | 6.91B (deepseek)/ 3.82B (quantized)  |
 | Peak Memory Use      | Fits within 16 GB T4 VRAM            |
-| Training Time/Epoch  | [Insert if measured]                 |
+| Training Time/Epoch  | 3 epochs                             |
 | Device               | NVIDIA T4 GPU                        |
 
 
