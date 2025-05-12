@@ -47,7 +47,7 @@ On the **AIME 2024** dataset, which is significantly more challenging, our light
 | Device               | NVIDIA T4 GPU                        |
 
 
-![alt text](Screenshot 2025-05-12 151353.png)
+![alt text](table.jpg)
 
 *Table: Experiments on Phi-3.5 Mini model on Countdown task*
 ---
