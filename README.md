@@ -75,8 +75,11 @@ python3 grpo_training.py --model phi --quantize --task aime \
 
 #### SFT Training:
 ```bash
-python3 sft_training.py --model deepseek --task countdown
+python3 sft_training.py --model phi --task countdown \
+--train_dataset_path ../tasks/countdown/countdown_train_dataset_distilled.jsonl
 ```
+Note that we use the distilled dataset for SFT training. The distilled dataset contains the original prompts of the training dataset as well as responses from GPT-o1-mini to transfer knowledge from GPT to our smaller models.
+
 #### GRPO after SFT:
 ```bash
 python3 upload_adapter.py --adapter_path ./outputs/... \
