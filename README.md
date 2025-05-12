@@ -60,12 +60,12 @@ On the **AIME 2024** dataset, which is significantly more challenging, our light
 pip install -r requirements.txt
 ```
 
-B. Wandb Dashboard
+### B. Wandb Dashboard
 View training and evaluation metrics here:
 ```bash
 https://wandb.ai/mtt-hpml/projects
 ```
-C. Training 
+### C. Training 
 GRPO only (baseline):
 ```bash
 python3 grpo_training.py --model phi --quantize --task aime \
@@ -73,17 +73,17 @@ python3 grpo_training.py --model phi --quantize --task aime \
 --eval_dataset_path ../tasks/aime/aime_eval_dataset.jsonl
 ```
 
-SFT Training:
+#### SFT Training:
 ```bash
 python3 sft_training.py --model deepseek --task countdown
 ```
-GRPO after SFT:
+#### GRPO after SFT:
 ```bash
 python3 upload_adapter.py --adapter_path ./outputs/... \
 --repo_id YOUR_HF_REPO_ID
 python3 grpo_training.py --model deepseek --adapter YOUR_HF_REPO_ID ...
 ```
-D. Evaluation
+### D. Evaluation
 ```bash
 python eval.py --weights checkpoints/best_model.pth
 ```
@@ -96,7 +96,7 @@ python3 query_model.py \
 --output_file deepseek_outputs/output.jsonl
 ```
 
-E. Profiling
+### E. Profiling
 
 1. There are two ways to enable profiling
     - In the main branch, uncomment to line of code. Specifically
