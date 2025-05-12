@@ -11,7 +11,7 @@
 
 ## 1. Problem Statement
 
-We fine-tune and run inference on two instruction-tuned LLMs—**DeepSeek-Coder-7B-Instruct-v1.5** (6.91B parameters) and **Phi-3.5-Mini-Instruct** (3.82B parameters)—for math reasoning under hardware constraints using a single NVIDIA T4 GPU. The task involves solving two math benchmarks: 
+We fine-tune and run inference on two instruction-tuned LLMs **DeepSeek-Coder-7B-Instruct-v1.5** (6.91B parameters) and **Phi-3.5-Mini-Instruct** (3.82B parameters) for math reasoning under hardware constraints using a single NVIDIA T4 GPU. The task involves solving two math benchmarks: 
 - **Countdown**: easier, requires generating equations under constraints.
 - **AIME 2024**: harder, advanced competition-style math problems.
 
