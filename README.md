@@ -40,7 +40,7 @@ On the **AIME 2024** dataset, which is significantly more challenging, our light
 | Metric               | Value                                |
 |----------------------|--------------------------------------|
 | Final Score          | 20 %                                 |
-| Inference Latency    | ? ms                                 |
+| Inference Latency    | ~42s                                 |
 | Model Size           | Phi- 3.82B (non-quantized)           |
 | Peak Memory Use      | Fits within 16 GB T4 VRAM            |
 | Training Time/Epoch  | 3 epochs                             |
