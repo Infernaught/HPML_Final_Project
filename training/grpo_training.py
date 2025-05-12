@@ -190,10 +190,10 @@ log_dir = "logs/profiler/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 
 profiler = profile(
     schedule=torch.profiler.schedule( # this schedule will capture 3 steps throughout training process
-        wait=19,
+        wait=2,
         warmup=2,
         active=1,
-        repeat=3,
+        repeat=0,
     ),
     activities=[ProfilerActivity.CPU,ProfilerActivity.CUDA],
     profile_memory=True, # only capture the memory as the rest are too expensive

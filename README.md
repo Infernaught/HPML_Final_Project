@@ -1,5 +1,11 @@
 # HPML_Final_Project
 
+## Overview
+
+We fine-tune and run inference on two models—DeepSeek-Coder-7B-Instruct-v1.5 (6.91B parameters) and Phi-3.5-Mini-Instruct (3.82B parameters)—using a single NVIDIA T4 GPU. To handle hardware limits, we apply Group Relative Policy Optimization (GRPO), Supervised Fine-Tuning (SFT), and quantization. We test the models on two math tasks: Countdown (easier, involves generating equations with specific constraints) and AIME 2024 (harder, involves solving advanced math problems).
+
+## Running Code
+
 This is a project designed to experiment with GRPO on a T4 GPU in GCP. When running scripts, please make sure you are running them from the directory in which the scripts are stored (i.e., in the training subdirectory, you can run `python grpo_training.py ...`)
 
 All GRPO datasets are stored under their corresponding tasks in the `tasks` subdirectory. The datasets were fetched from Hugging Face and edited using `get_aime_dataset.py` and `get_countdown_dataset.py` in the `tasks/scripts` subdirectory.
@@ -10,6 +16,10 @@ To run the general flow of experiments:
 
 For GRPO training only:
 1. Run grpo_training.py using the desired base model and dataset.
+2. Some example commands include:
+    - python3 grpo_training.py --model phi --quantize --task aime --train_dataset_path ../tasks/aime/aime_train_dataset.jsonl --eval_dataset_path ../tas
+ks/aime/aime_eval_dataset.jsonl (runs grpo with Phi model, 4 bit quantization and the aime benchmark task)
+    - python3 grpo_training.py --model deepseek --quantize --use_8bit --task countdown --train_dataset_path ../tasks/countdown/countdown_eval_dataset.jsonl (runs grpo with deepseek model, 8 bit quantization, the countdown benchmark task and sets the path to countdown train dataset)
 
 For SFT training only:
 1. Run sft_training.py using the desired base model and dataset.
@@ -20,9 +30,33 @@ For GRPO training after SFT pretraining:
 3. (Be logged in with a token with HF write permissions) Run upload_adapter.py with your local saved adapter weights
 4. Run grpo_training.py using the appropriate base model and your uploaded HF adapter.
 
+For adding new/updating data file
+1. All data get be downloaded by running one of the scipts in /tasks/scripts
+2. Some example commands include:
+    - python3 ./tasks/scripts/get_countdown_dataset.py --base_model deepseek (get countdown train and eval datasets for deepseek)
+
 For inference:
 1. If you are testing a base model, you can simply pass in the HF path to query_model.py
 2. If you are testing a trained adapter, you need to upload the adapter to Hugging Face (through upload_adapter.py) then pass the HF path to query_model.py
+3. Some example commands include:
+    - 
+
+For profiling:
+1. There are two ways to enable profiling
+    - In the main branch, uncomment to line of code. Specifically
+        - Switch to TroysBranch, and run from there, this is where profiling mostly happended to avoid overhead
+        - on_trace_ready found on line 203 and callbacks=[ProfilerCallback(profiler)] on line 213 (not recommeded)
+2. Profiling is currently only capturing one step because of the large memory pressure to profile (writes 2-3 GB per step)
+    - This can be changed by updating the schedule
+3. Run the GRPO script normally and profiling traces will be saved to ./logs/profiler directory
+3. All profiles can be found on a running VMs until May 16th (after that will be taken down) at URLs:
+    - http://34.42.25.189:6006/#pytorch_profiler (Compares running GRPO against T4 and L4 with and without quantization)
+    - http://34.170.77.214:6006/#pytorch_profiler (Compares running GRPO with deepseek and Phi with and without quantization)
+![alt text](<Screenshot 2025-05-11 at 10.45.20 PM.png>)
+![alt text](<Screenshot 2025-05-11 at 10.45.34 PM.png>)
+![alt text](<Screenshot 2025-05-11 at 10.47.33 PM.png>)
+![alt text](<Screenshot 2025-05-11 at 10.49.21 PM.png>)
+       
 
 Our results are saved in `inference/scores`.
 
