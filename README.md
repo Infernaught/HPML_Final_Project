@@ -35,11 +35,17 @@ For adding new/updating data file
 2. Some example commands include:
     - python3 ./tasks/scripts/get_countdown_dataset.py --base_model deepseek (get countdown train and eval datasets for deepseek)
 
+For uploading an adapter
+1. run GRPO, checkpoints will save in outputs directory
+2. run upload_adapter.py
+3. An example command:
+ - python3 upload_adapter.py --adapter_path ./outputs/deepseek-ai/deepseek-coder-7b-instruct-v1.5/aime/checkpoint-66 --repo_id TDani/deepseek_aime_n100_mcl_256_quantized
+
 For inference:
 1. If you are testing a base model, you can simply pass in the HF path to query_model.py
 2. If you are testing a trained adapter, you need to upload the adapter to Hugging Face (through upload_adapter.py) then pass the HF path to query_model.py
 3. Some example commands include:
-    - 
+    - python3 query_model.py --model deepseek-ai/deepseek-coder-7b-instruct-v1.5 --adapter_repo TDani/deepseek_aime_n100_mcl_256_quantized --prompt_file ../tasks/aime/aime_eval_dataset.jsonl --output_file deepseek_outputs/deepseek_aime_n100_mcl_256_quantized.jsonl
 
 For profiling:
 1. There are two ways to enable profiling
